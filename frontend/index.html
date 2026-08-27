@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataLens AI — Modern AI Data Analyst</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #fdfbf7;
+            --card: #ffffff;
+            --text: #2c2925;
+            --muted: #78716c;
+            --border: #e7e5e4;
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --primary-light: #f0fdfa;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --sidebar-width: 260px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 4px 20px -2px rgba(44, 41, 37, 0.04);
+            --shadow-card: 0 10px 30px -4px rgba(44, 41, 37, 0.06);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input, textarea, select {
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .logo {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-mark {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .logo-mark svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .logo-name {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #2c2925;
+        }
+
+        .sidebar-nav {
+            padding: 24px 16px;
+            flex: 1;
+        }
+
+        .nav-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 0 12px 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 6px;
+            border-radius: var(--radius-sm);
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+        }
+
+        .sidebar-bottom {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .upload-small {
+            width: 100%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .upload-small:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.3);
+        }
+
+        .main {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 80px;
+            background: rgba(253, 251, 247, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 36px;
+            position: sticky;
+            top: 0;
+            z-index: 80;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .page-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .dataset-pill {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #f0fdfa;
+            color: var(--primary);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            max-width: 320px;
+            overflow: hidden;
+            border: 1px solid #ccfbf1;
+        }
+
+        .dataset-dot {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        }
+
+        #datasetPillName {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-btn {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .delete-btn {
+            border-color: #fee2e2;
+            background: #fff5f5;
+            color: var(--danger);
+        }
+
+        .delete-btn:hover {
+            background: #fee2e2;
+            border-color: #f87171;
+            color: #b91c1c;
+        }
+
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            background: #f5f5f4;
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+
+        .ai-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+        }
+
+        .content {
+            width: 100%;
+            max-width: 1550px;
+            margin: 0 auto;
+            padding: 36px;
+        }
+
+        .upload-screen {
+            width: 100%;
+            min-height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .upload-screen h1 {
+            font-size: 40px;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .upload-screen > p {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 580px;
+            margin-bottom: 36px;
+        }
+
+        .upload-zone {
+            width: min(650px, 100%);
+            min-height: 300px;
+            background: white;
+            border: 2px dashed #d6d3d1;
+            border-radius: 24px;
+            padding: 48px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .upload-zone:hover, .upload-zone.dragging {
+            border-color: var(--primary);
+            background: #f0fdfa;
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px -10px rgba(13, 148, 136, 0.1);
+        }
+
+        .upload-circle {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+
+        .upload-zone h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .upload-zone .supported {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .file-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 24px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+        }
+
+        .upload-features {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 36px;
+            flex-wrap: wrap;
+        }
+
+        .upload-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .feature-check {
+            color: var(--success);
+            font-weight: 800;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .welcome {
+            margin-bottom: 28px;
+        }
+
+        .welcome h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 6px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .kpi-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            margin-top: 14px;
+            letter-spacing: -0.8px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+            min-width: 0;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .card-subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .chart-container {
+            height: 340px;
+            position: relative;
+            width: 100%;
+        }
+
+        .profile-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #f5f5f4;
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-icon {
+            width: 36px;
+            height: 36px;
+            background: #f5f5f4;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .profile-name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .profile-type {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .profile-count {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 160px auto;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        select {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: white;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            outline: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+
+        .primary-btn {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: var(--radius-sm);
+            padding: 11px 22px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .primary-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .quality-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .quality-box {
+            background: #fafaf9;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+        }
+
+        .quality-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .quality-value {
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .insight {
+            display: flex;
+            gap: 14px;
+            padding: 16px;
+            background: #fafaf9;
+            border: 1px solid #e7e5e4;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .insight:last-child {
+            margin-bottom: 0;
+        }
+
+        .insight-icon {
+            color: var(--primary);
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 450px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            background: #fafaf9;
+            color: var(--muted);
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f5f5f4;
+            color: #44403c;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: #fafaf9;
+        }
+
+        .chat-launcher {
+            position: fixed;
+            right: 28px;
+            bottom: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0d9488, #115e59);
+            color: white;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 35px rgba(13, 148, 136, 0.35);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-launcher:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .chat-launcher svg {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+        }
+
+        .chat-launcher::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            right: 2px;
+            top: 2px;
+            border: 2px solid white;
+        }
+
+        .chat {
+            position: fixed;
+            right: 28px;
+            bottom: 104px;
+            width: 410px;
+            max-height: calc(100vh - 140px);
+            height: 540px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 60px rgba(44, 41, 37, 0.15);
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: chatIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .chat.open {
+            display: flex;
+        }
+
+        @keyframes chatIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chat-head {
+            height: 75px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bot-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bot-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0d9488, #115e59);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .bot-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .bot-name {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .bot-status {
+            font-size: 11px;
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .chat-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f5f5f4;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chat-close:hover {
+            background: #e7e5e4;
+            color: var(--text);
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafaf9;
+        }
+
+        .chat-msg {
+            max-width: 88%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-msg.bot {
+            background: white;
+            border: 1px solid var(--border);
+            color: #44403c;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .chat-msg.user {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+        }
+
+        .chat-footer {
+            padding: 14px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-box {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: #fafaf9;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-size: 13px;
+            min-height: 36px;
+            max-height: 100px;
+            padding: 6px;
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+        }
+
+        .loading span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--muted);
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        .loading span:nth-child(2) { animation-delay: 0.15s; }
+        .loading span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media(max-width: 1100px) {
+            .sidebar { width: 76px; }
+            .logo { justify-content: center; padding: 0; }
+            .logo-name, .nav-label, .nav-item span:not(.nav-icon) { display: none; }
+            .nav-item { justify-content: center; }
+            .main { margin-left: 76px; width: calc(100% - 76px); }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .two-column { grid-template-columns: 1fr; }
+        }
+
+        @media(max-width: 700px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; width: 100%; }
+            .topbar { padding: 0 20px; }
+            .content { padding: 20px 16px 100px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .quality-grid { grid-template-columns: 1fr; }
+            .controls { grid-template-columns: 1fr; }
+            .chat { right: 12px; bottom: 90px; width: calc(100% - 24px); height: 72vh; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            </div>
+            <div class="logo-name">DataLens AI</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Workspace</div>
+            <div class="nav-item active" onclick="scrollToSection('overview')">
+                <span class="nav-icon">▦</span>
+                <span>Overview</span>
+            </div>
+            <div class="nav-item" onclick="scrollToSection('qualitySection')">
+                <span class="nav-icon">◉</span>
+                <span>Data Quality</span>
+            </div>
+            <div class="nav-item" onclick="scrollToSection('chartsSection')">
+                <span class="nav-icon">◒</span>
+                <span>Analytics</span>
+            </div>
+            <div class="nav-item" onclick="scrollToSection('columnsSection')">
+                <span class="nav-icon">▤</span>
+                <span>Columns</span>
+            </div>
+            <div class="nav-item" onclick="scrollToSection('insightsSection')">
+                <span class="nav-icon">✦</span>
+                <span>AI Insights</span>
+            </div>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <button class="upload-small" onclick="document.getElementById('fileInput').click()">+ Upload Dataset</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <span class="page-title">Data Workspace</span>
+                <span class="dataset-pill" id="datasetPill">
+                    <span class="dataset-dot"></span>
+                    <span id="datasetPillName">Dataset</span>
+                </span>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="action-btn delete-btn" id="deleteBtn" onclick="deleteDataset()" style="display:none;">
+                    🗑 Delete
+                </button>
+                <div class="ai-status">
+                    <span class="ai-dot"></span>
+                    AI Analyst Online
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <section class="upload-screen" id="uploadScreen">
+                <h1>Turn your data into insights</h1>
+                <p>Upload a CSV or Excel file and let DataLens AI understand, clean, and analyze your dataset instantly.</p>
+
+                <label class="upload-zone" id="uploadZone" for="fileInput">
+                    <div class="upload-circle">↑</div>
+                    <h2>Drop your dataset here</h2>
+                    <span class="supported">Supports CSV, XLS or XLSX files</span>
+                    <span class="file-btn">Choose File</span>
+                </label>
+
+                <div class="upload-features">
+                    <div class="upload-feature"><span class="feature-check">✓</span> Automatic cleaning</div>
+                    <div class="upload-feature"><span class="feature-check">✓</span> Smart analysis</div>
+                    <div class="upload-feature"><span class="feature-check">✓</span> AI conversational insights</div>
+                    <div class="upload-feature"><span class="feature-check">✓</span> Interactive charts</div>
+                </div>
+            </section>
+
+            <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" hidden>
+
+            <section class="dashboard" id="dashboard">
+                <div class="welcome" id="overview">
+                    <h1>Dataset Overview</h1>
+                    <p>Key metrics and structural analysis discovered in your data.</p>
+                </div>
+
+                <div class="kpi-grid" id="kpiGrid"></div>
+
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Data Distribution</div>
+                                <div class="card-subtitle">Automatically detected distribution breakdown</div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Dataset Profile</div>
+                                <div class="card-subtitle">Column type classification</div>
+                            </div>
+                        </div>
+                        <div id="profile"></div>
+                    </div>
+                </div>
+
+                <div class="card" id="chartsSection">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Build a Chart</div>
+                            <div class="card-subtitle">Select axes and visualize your data dynamically</div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <select id="xColumn">
+                            <option value="">X-axis column</option>
+                        </select>
+                        <select id="yColumn">
+                            <option value="">Y-axis column</option>
+                        </select>
+                        <select id="chartType">
+                            <option value="bar">Bar Chart</option>
+                            <option value="line">Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                            <option value="scatter">Scatter Plot</option>
+                        </select>
+                        <button class="primary-btn" onclick="generateChart()">Generate</button>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="customChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card" id="qualitySection">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Data Quality</div>
+                            <div class="card-subtitle">Automated assessment of completeness & anomalies</div>
+                        </div>
+                    </div>
+                    <div class="quality-grid" id="quality"></div>
+                </div>
+
+                <div class="card" id="insightsSection">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">AI Insights</div>
+                            <div class="card-subtitle">Key findings and patterns extracted from your data</div>
+                        </div>
+                    </div>
+                    <div id="insights"></div>
+                </div>
+
+                <div class="card" id="columnsSection">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Column Explorer</div>
+                            <div class="card-subtitle">Detailed field-by-field statistics</div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Missing</th>
+                                    <th>Unique</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="columnsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Data Preview</div>
+                            <div class="card-subtitle" id="previewSubtitle">Original uploaded data preview</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button class="action-btn" id="cleanDataBtn" onclick="toggleCleanData()">✨ Clean Data</button>
+                            <div id="downloadButtons" style="display:none; gap: 6px;">
+                                <button class="action-btn" onclick="downloadDataset('csv')" style="background:var(--primary-light); color:var(--primary); border-color:#ccfbf1;">↓ CSV</button>
+                                <button class="action-btn" onclick="downloadDataset('excel')" style="background:var(--primary-light); color:var(--primary); border-color:#ccfbf1;">↓ Excel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead id="previewHead"></thead>
+                            <tbody id="previewBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<button class="chat-launcher" id="chatLauncher" onclick="toggleChat()" title="Ask DataLens AI">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+</button>
+
+<div class="chat" id="chat">
+    <div class="chat-head">
+        <div class="bot-info">
+            <div class="bot-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+            </div>
+            <div>
+                <div class="bot-name">DataLens AI</div>
+                <div class="bot-status">● Ready to analyze</div>
+            </div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()" title="Close">×</button>
+    </div>
+
+    <div class="chat-body" id="chatMessages">
+        <div class="chat-msg bot">
+            <strong>Hi! I'm DataLens AI.</strong><br><br>
+            Upload a dataset and ask me questions about your data or how it was cleaned.<br><br>
+            <strong>Try asking:</strong><br>
+            • How was my data cleaned?<br>
+            • What changes were made to Patient Gender?<br>
+            • What is the difference between my original and cleaned file?
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <div class="chat-input-box">
+            <textarea id="chatInput" class="chat-input" placeholder="Ask about your dataset..." rows="1" onkeydown="handleChatKey(event)"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendChat()">↑</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "";
+    let datasetId = null;
+    let showingCleanData = false;
+    let mainChart = null;
+    let customChart = null;
+
+    const fileInput = document.getElementById("fileInput");
+    const uploadZone = document.getElementById("uploadZone");
+    const uploadScreen = document.getElementById("uploadScreen");
+    const dashboard = document.getElementById("dashboard");
+
+    fileInput.addEventListener("change", (e) => {
+        if (e.target.files[0]) uploadDataset(e.target.files[0]);
+    });
+
+    uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("dragging"); });
+    uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragging"));
+    uploadZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove("dragging");
+        if (e.dataTransfer.files[0]) uploadDataset(e.dataTransfer.files[0]);
+    });
+
+    async function uploadDataset(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        uploadScreen.innerHTML = `
+            <div class="upload-zone" style="cursor:default;">
+                <div class="upload-circle">◌</div>
+                <h2>Analyzing your dataset...</h2>
+                <span class="supported">Please wait while DataLens AI processes your file.</span>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`${API_URL}/analyze`, { method: "POST", body: formData });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.detail || "Analysis failed.");
+
+            datasetId = data.dataset_id || data.id;
+            uploadScreen.style.display = "none";
+            dashboard.style.display = "block";
+
+            document.getElementById("datasetPill").style.display = "flex";
+            document.getElementById("datasetPillName").textContent = data.dataset?.filename || file.name;
+
+            showDatasetButtons();
+            renderDashboard(data);} catch (error) {
+            console.error("UPLOAD ERROR:", error);
+            restoreUploadScreen();
+            alert(error.message || "Failed to analyze dataset.");}}
+
+    function restoreUploadScreen() {
+        uploadScreen.style.display = "flex";
+        dashboard.style.display = "none";
+        uploadScreen.innerHTML = `
+            <h1>Turn your data into insights</h1>
+            <p>Upload a CSV or Excel file and let DataLens AI understand, clean, and analyze your dataset instantly.</p>
+            <label class="upload-zone" id="uploadZone" for="fileInput">
+                <div class="upload-circle">↑</div>
+                <h2>Drop your dataset here</h2>
+                <span class="supported">Supports CSV, XLS or XLSX files</span>
+                <span class="file-btn">Choose File</span>
+            </label>
+            <div class="upload-features">
+                <div class="upload-feature"><span class="feature-check">✓</span> Automatic cleaning</div>
+                <div class="upload-feature"><span class="feature-check">✓</span> Smart analysis</div>
+                <div class="upload-feature"><span class="feature-check">✓</span> AI conversational insights</div>
+                <div class="upload-feature"><span class="feature-check">✓</span> Interactive charts</div>
+            </div>`;}
+
+    function showDatasetButtons() {
+        document.getElementById("downloadButtons").style.display = "none";
+        document.getElementById("deleteBtn").style.display = "inline-flex";}
+
+    function hideDatasetButtons() {
+        document.getElementById("downloadButtons").style.display = "none";
+        document.getElementById("deleteBtn").style.display = "none";}
+
+    async function downloadDataset(format) {
+        if (!datasetId) return;
+        const endpoint = format === 'excel' ? `/download-excel/${datasetId}` : `/download/${datasetId}`;
+        const defaultFilename = format === 'excel' ? 'cleaned_dataset.xlsx' : 'cleaned_dataset.csv';
+        try {
+            const res = await fetch(`${API_URL}${endpoint}`);
+            if (!res.ok) throw new Error("Download failed.");
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = defaultFilename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();} catch (err) {
+            alert(err.message);}}
+
+    async function deleteDataset() {
+        if (!datasetId || !confirm("Are you sure you want to delete this dataset?")) return;
+        try {
+            await fetch(`${API_URL}/dataset/${datasetId}`, { method: "DELETE" });
+            if (mainChart) mainChart.destroy();
+            if (customChart) customChart.destroy();
+            datasetId = null;
+            dashboard.style.display = "none";
+            document.getElementById("datasetPill").style.display = "none";
+            hideDatasetButtons();
+            restoreUploadScreen();
+            fileInput.value = "";
+            resetChat();} catch (err) {
+            alert("Could not delete dataset.");}}
+
+    function renderDashboard(data) {
+        renderKPIs(data);
+        renderQuality(data);
+        renderProfile(data);
+        renderColumns(data);
+        renderPreview({ preview: data.original_preview || data.preview || [], mode: "original" });
+        renderInsights(data);
+        populateSelectors(data);
+        renderAutomaticChart(data);
+    }
+
+    function renderKPIs(data) {
+        const grid = document.getElementById("kpiGrid");
+        grid.innerHTML = "";
+        const kpis = data.kpis || {};
+        if (!Object.keys(kpis).length) {
+            if (data.rows !== undefined) kpis["Total Records"] = data.rows;
+            if (data.columns !== undefined) kpis["Total Columns"] = data.columns;
+            if (data.missing_values !== undefined) kpis["Missing Values"] = data.missing_values;
+            if (data.duplicates !== undefined) kpis["Duplicate Rows"] = data.duplicates;
+        }
+        const icons = ["▦", "◉", "↗", "◆", "●"];
+        Object.entries(kpis).forEach(([key, value], i) => {
+            grid.innerHTML += `
+                <div class="kpi">
+                    <div class="kpi-top">
+                        <span class="kpi-label">${escapeHtml(key)}</span>
+                        <span class="kpi-icon">${icons[i % icons.length]}</span>
+                    </div>
+                    <div class="kpi-value">${formatNumber(value)}</div>
+                </div>`;});
+    }
+
+    function renderQuality(data) {
+        const quality = data.data_quality || {};
+        const dupes = quality.duplicate_rows ?? data.duplicates ?? 0;
+        const missing = quality.missing_values ?? data.missing_values ?? 0;
+        let status = quality.status || (missing > 0 || dupes > 0 ? "Needs Attention" : "Excellent");
+
+        document.getElementById("quality").innerHTML = `
+            <div class="quality-box">
+                <div class="quality-label">Duplicate Rows</div>
+                <div class="quality-value">${formatNumber(dupes)}</div>
+            </div>
+            <div class="quality-box">
+                <div class="quality-label">Missing Values</div>
+                <div class="quality-value" style="color: ${missing > 0 ? 'var(--warning)' : 'var(--success)'}">${formatNumber(missing)}</div>
+            </div>
+            <div class="quality-box">
+                <div class="quality-label">Status</div>
+                <div class="quality-value" style="color: ${status === 'Excellent' ? 'var(--success)' : 'var(--warning)'}">${escapeHtml(status)}</div>
+            </div>`;
+    }
+
+    function renderProfile(data) {
+        const types = data.column_types || {};
+        document.getElementById("profile").innerHTML = `
+            <div class="profile-row">
+                <div class="profile-left">
+                    <div class="profile-icon">#</div>
+                    <div><div class="profile-name">Numeric</div><div class="profile-type">Numbers & metrics</div></div>
+                </div>
+                <div class="profile-count">${(types.numeric || []).length}</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-left">
+                    <div class="profile-icon">Aa</div>
+                    <div><div class="profile-name">Categorical</div><div class="profile-type">Text & labels</div></div>
+                </div>
+                <div class="profile-count">${(types.categorical || []).length}</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-left">
+                    <div class="profile-icon">◷</div>
+                    <div><div class="profile-name">Date</div><div class="profile-type">Timestamps</div></div>
+                </div>
+                <div class="profile-count">${(types.date || []).length}</div>
+            </div>`;
+    }
+
+    function renderColumns(data) {
+        const table = document.getElementById("columnsTable");
+        table.innerHTML = "";
+        const cols = data.columns_info || [];
+        cols.forEach(col => {
+            let details = "-";
+            if (col.type === "numeric") {
+                details = `Avg: ${formatNumber(col.mean)} &bull; Min: ${formatNumber(col.min)} &bull; Max: ${formatNumber(col.max)}`;
+            } else if (col.type === "categorical" && col.top_values) {
+                const top = Object.entries(col.top_values)[0];
+                if (top) details = `Top: ${top[0]} (${top[1]})`;
+            }
+            table.innerHTML += `
+                <tr>
+                    <td><strong>${escapeHtml(col.name)}</strong></td>
+                    <td>${escapeHtml(col.type)}</td>
+                    <td>${formatNumber(col.missing)}</td>
+                    <td>${formatNumber(col.unique)}</td>
+                    <td>${details}</td>
+                </tr>`;});
+    }
+
+    function renderPreview(data) {
+        const rows = data.preview || data.data || [];
+        const head = document.getElementById("previewHead");
+        const body = document.getElementById("previewBody");
+        const subtitle = document.getElementById("previewSubtitle");
+        head.innerHTML = "";
+        body.innerHTML = "";
+
+        const isClean = data.mode === "clean" || showingCleanData;
+        if (subtitle) subtitle.textContent = isClean ? "Cleaned dataset preview" : "Original uploaded data preview";
+        const btn = document.getElementById("cleanDataBtn");
+        if (btn) btn.textContent = isClean ? "↩ Show Original" : "✨ Clean Data";
+
+        if (!rows.length) {
+            body.innerHTML = `<tr><td colspan="10" class="empty-state">No preview data available.</td></tr>`;
+            return;
+        }
+
+        const columns = Object.keys(rows[0]);
+        head.innerHTML = `<tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr>`;
+        body.innerHTML = rows.slice(0, 50).map(r => `<tr>${columns.map(c => `<td>${escapeHtml(r[c] ?? "")}</td>`).join("")}</tr>`).join("");
+    }
+
+    async function toggleCleanData() {
+        if (!datasetId) return;
+        if (showingCleanData) {
+            const res = await fetch(`${API_URL}/preview/${datasetId}`);
+            const data = await res.json();
+            showingCleanData = false;
+            renderPreview({ preview: data.data || [], mode: "original" });
+            document.getElementById("downloadButtons").style.display = "none";
+            return;
+        }
+        const res = await fetch(`${API_URL}/clean-preview/${datasetId}`);
+        const data = await res.json();
+        showingCleanData = true;
+        renderPreview({ preview: data.data || [], mode: "clean" });
+        document.getElementById("downloadButtons").style.display = "flex";
+    }
+
+    function renderInsights(data) {
+        const container = document.getElementById("insights");
+        const insights = data.insights || [];
+        if (!insights.length) {
+            container.innerHTML = `<div class="insight"><span class="insight-icon">✦</span><span>No additional insights detected.</span></div>`;
+            return;
+        }
+        container.innerHTML = insights.map(i => `<div class="insight"><span class="insight-icon">✦</span><span>${escapeHtml(i)}</span></div>`).join("");
+    }
+
+    function populateSelectors(data) {
+        const x = document.getElementById("xColumn");
+        const y = document.getElementById("yColumn");
+        x.innerHTML = `<option value="">X-axis column</option>`;
+        y.innerHTML = `<option value="">Y-axis column</option>`;
+        (data.columns_info || []).forEach(col => {
+            x.innerHTML += `<option value="${escapeHtml(col.name)}">${escapeHtml(col.name)}</option>`;
+            y.innerHTML += `<option value="${escapeHtml(col.name)}">${escapeHtml(col.name)}</option>`;
+        });
+    }
+
+    function renderAutomaticChart(data) {
+        const dist = data.distribution;
+        if (!dist || !dist.labels?.length) return;
+        const canvas = document.getElementById("mainChart");
+        if (mainChart) mainChart.destroy();
+
+        mainChart = new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels: dist.labels,
+                datasets: [{ data: dist.values, backgroundColor: "#0d9488", borderRadius: 6 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: "#f5f5f4" } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    async function generateChart() {
+        if (!datasetId) return;
+        const x = document.getElementById("xColumn").value;
+        const y = document.getElementById("yColumn").value;
+        const type = document.getElementById("chartType").value;
+        if (!x) { alert("Select an X-axis column."); return; }
+
+        try {
+            const res = await fetch(`${API_URL}/chart/${datasetId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ x_column: x, y_column: y || null, chart_type: type })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail);
+            drawCustomChart(data);
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function drawCustomChart(data) {
+        const canvas = document.getElementById("customChart");
+        if (customChart) customChart.destroy();
+        customChart = new Chart(canvas, {
+            type: data.type || "bar",
+            data: {
+                labels: data.labels || [],
+                datasets: [{ label: data.y || "Value", data: data.values || [], backgroundColor: "#0d9488", borderRadius: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: data.type === 'pie' } } }
+        });
+    }
+
+    function toggleChat() { document.getElementById("chat").classList.toggle("open"); }
+    function handleChatKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }
+
+    async function sendChat() {
+        const input = document.getElementById("chatInput");
+        const q = input.value.trim();
+        if (!q || !datasetId) return;
+
+        addUserMessage(q);
+        input.value = "";
+        const sendBtn = document.getElementById("sendBtn");
+        sendBtn.disabled = true;
+        const loadingId = addLoading();
+
+        try {
+            const res = await fetch(`${API_URL}/chat/${datasetId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: q })
+            });
+            const data = await res.json();
+            removeLoading(loadingId);
+            if (!res.ok) throw new Error(data.detail);
+            addBotMessage(formatAIResponse(data.answer));
+        } catch (err) {
+            removeLoading(loadingId);
+            addBotMessage(`<strong>Error:</strong> ${escapeHtml(err.message)}`);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+
+    function addUserMessage(text) {
+        const body = document.getElementById("chatMessages");
+        body.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+        scrollChat();
+    }
+
+    function addBotMessage(html) {
+        const body = document.getElementById("chatMessages");
+        body.innerHTML += `<div class="chat-msg bot">${html}</div>`;
+        scrollChat();
+    }
+
+    function addLoading() {
+        const body = document.getElementById("chatMessages");
+        const id = "load-" + Date.now();
+        body.innerHTML += `<div id="${id}" class="chat-msg bot"><div class="loading"><span></span><span></span><span></span></div></div>`;
+        scrollChat();
+        return id;
+    }
+
+    function removeLoading(id) { document.getElementById(id)?.remove(); }
+    
+    function resetChat() {
+        document.getElementById("chatMessages").innerHTML = `
+            <div class="chat-msg bot">
+                <strong>Hi! I'm DataLens AI.</strong><br><br>Upload a dataset and ask me questions about your data.
+            </div>
+        `;
+    }
+
+    function formatAIResponse(text) {
+        return escapeHtml(text)
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/^### (.*)$/gm, "<strong>$1</strong>")
+            .replace(/^- (.*)$/gm, "• $1")
+            .replace(/\n/g, "<br>");
+    }
+
+    function scrollChat() {
+        const body = document.getElementById("chatMessages");
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function scrollToSection(id) {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function escapeHtml(val) {
+        if (val == null) return "";
+        return String(val).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function formatNumber(val) {
+        if (val == null || val === "") return "-";
+        const num = Number(val);
+        return Number.isFinite(num) ? num.toLocaleString(undefined, { maximumFractionDigits: 2 }) : escapeHtml(val);
+    }
+</script>
+
+</body>
+</html>
